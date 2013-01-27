@@ -19,6 +19,16 @@ namespace asyncWinForms
             InitializeComponent();
         }
 
+        public string Button7Text
+        {
+            set { button7.Text = value; }
+        }
+
+        public string Button8Text
+        {
+            set { button8.Text = value; }
+        }
+
         private async void button1_Click(object sender, EventArgs e)
         {
             var service = new Service();
@@ -51,6 +61,44 @@ namespace asyncWinForms
             var runDialog = await service.RunDialog();
 
             button4.Text = runDialog ? "OK" : "Cancel";
+        }
+
+        private async void button5_Click(object sender, EventArgs e)
+        {
+            var service = new Service();
+
+            var math = await service.RunMathImplicitlyCastedToTask();
+
+            button5.Text = Convert.ToString(math);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            var service = new Service();
+
+            Action<Task<double>> callBack = t => button6.Text = Convert.ToString(t.Result);
+            
+            service.RunMathAsyncWithoutAsyncKeyword(callBack);
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            var service = new Service();
+
+            service.RunMathInternallyAsync(this);
+        }
+
+        public event Action RunMath;
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            var service = new Service();
+            service.Form1 = this;
+
+            var onRunMath = RunMath;
+
+            if(onRunMath!=null)
+                onRunMath.Invoke();
         }
     }
 }

@@ -7,6 +7,8 @@ namespace asyncWinForms
 {
     public class Service
     {
+        private Form1 form1;
+
         public async Task<double> RunMath()
         {
             double result = 0;
@@ -42,19 +44,36 @@ namespace asyncWinForms
         {
             return Task.Run(() =>
             {
-                double result = 0;
-
-                Thread.Sleep(5000);
-
-                for (int i = 0; i < 5000000; i++)
-                {
-                    result += Math.Sqrt(i);
-                }
-
-                Thread.Sleep(5000);
-
-                return result;
+                return RunMathSync();
             });
+        }
+
+        public void RunMathAsyncWithoutAsyncKeyword(Action<Task<double>> onFinish)
+        {
+            var task = new Task<double>(RunMathSync);
+            task.ContinueWith(onFinish, TaskScheduler.FromCurrentSynchronizationContext());
+            task.Start();
+        }
+
+        public async Task<double> RunMathImplicitlyCastedToTask()
+        {
+            return RunMathSync();
+        }
+
+        private static double RunMathSync()
+        {
+            double result = 0;
+
+            Thread.Sleep(5000);
+
+            for (int i = 0; i < 5000000; i++)
+            {
+                result += Math.Sqrt(i);
+            }
+
+            Thread.Sleep(5000);
+
+            return result;
         }
 
 
@@ -69,6 +88,29 @@ namespace asyncWinForms
             newMessageBox.Show();
 
             return taskCompletionSource.Task;
+        }
+
+        public async void RunMathInternallyAsync(Form1 form1)
+        {
+            var result = await RunMathWrappedInTask();
+
+            form1.Button7Text = Convert.ToString(result);
+        }
+
+        public Form1 Form1
+        {
+            set
+            {
+                form1 = value;
+                form1.RunMath += Form1OnRunMath;
+            }
+        }
+
+        private async void Form1OnRunMath()
+        {
+            var result = await RunMathWrappedInTask();
+
+            this.form1.Button8Text = Convert.ToString(result);
         }
     }
 }
